@@ -45,8 +45,8 @@ function Lap({ number, interval, fastest, slowest }){
   ]
   return(
     <View style={styles.lap}>
-        <Text style={styles.lapText}>Lap {number}</Text>
-        <Timer style={styles.lapText} interval={interval}/>
+        <Text style={lapStyle}>Lap {number}</Text>
+        <Timer style={[lapStyle, styles.lapTimer]} interval={interval}/>
     </View>
   )
 }
@@ -87,6 +87,10 @@ export default class App extends React.Component {
    }
   }
 
+  componentWillUnmount(){
+    clearInterval(this.timer)
+  }
+
   start = () =>
   {
     const now = new Date().getTime()
@@ -100,19 +104,68 @@ export default class App extends React.Component {
     }, 100)
   }
 
+  lap = () =>
+  {
+    const timestamp = new Date().getTime()
+    const {laps, now, start} = this.state
+    const [firstLap, ... other] =  laps
+    this.setState({
+      laps: [0, firstLap + now - start, ... other], 
+      start: timestamp,
+      now: timestamp,
+    })
+  }
+
+  stop = () =>
+  {
+    clearInterval(this.timer)
+    const {laps, now, start} = this.state
+    const [firstLap, ... other] =  laps
+    this.setState({
+      laps: [firstLap + now - start, ... other], 
+      start: 0,
+      now: 0,
+    })
+  }
+
+  resume = () =>
+  {
+    const now = new Date().getTime()
+    this.setState({
+      start: 0,
+      now: 0,
+      laps: [],
+    })  
+  }
+
+  start = () =>
+  {
+    const now = new Date().getTime()
+    this.setState({
+      start: now,
+      now,
+    })  
+    this.timer = setInterval(()=>{
+      this.setState({now: new Date().getTime()})
+    }, 100)
+  }
+
 
   render() {
     const{now, start, laps} = this.state
     const timer = now - start
     return (
       <View style={styles.container}>
-        <Timer interval={timer} style={styles.timer}/>
+        <Timer 
+          interval={laps.reduce((total, crurr)=> total + curr, 0)+timer} 
+          style={styles.timer}  
+        />
         {laps.length == 0 && (
           <ButtonRow>
-            <RoundButton title='Reset' color='#50D167' background='#1B361F'/>
+            <RoundButton title='Lap' color='#50D167' background='#151515' disabled/>
             <RoundButton 
                 title='Start' 
-                color='#ffff' 
+                color='#8B8B90' 
                 background='#3D3D3D'
                 onPress={this.start}
             />
@@ -120,15 +173,38 @@ export default class App extends React.Component {
         )}
         {start > 0 && (
             <ButtonRow>
-            <RoundButton title='Lap' color='#50D167' background='#1B361F'/>
+            <RoundButton 
+                title='Lap' 
+                color='#50D167' 
+                background='#1B361F'
+                onPress={this.lap}
+                />
             <RoundButton 
                 title='Stop' 
                 color='#E33935' 
                 background='#3C1715'
-                onPress={this.start}
+                onPress={this.stop}
             />
           </ButtonRow>
         )}
+
+        {laps.length > 0 && start == 0 && (
+            <ButtonRow>
+            <RoundButton 
+                title='Reset' 
+                color='#FFFFFF' 
+                background='#3D3D3D'
+                onPress={this.reset}
+                />
+            <RoundButton 
+                title='Start' 
+                color='#50D167' 
+                background='#1B361F'
+                onPress={this.resume}
+            />
+          </ButtonRow>
+        )}
+
           <LapsTable laps = {laps} timer={timer} />
       </View>
     );
@@ -167,7 +243,7 @@ const styles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 38,
-    borderWidth: 2,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -191,6 +267,9 @@ const styles = StyleSheet.create({
   lapText:{
     color: '#FFFFFF',
     fontSize: 17,
+  },
+
+  lapTimer:{
     width:30,
   },
 
