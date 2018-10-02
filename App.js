@@ -4,12 +4,15 @@ import moment from "moment";
 
 
 function Timer({ interval, style }) {
+  const pad = (n) => n < 10 ? '0' + n : n
   const duration = moment.duration(interval) 
   const centiseconds = Math.floor(duration.milliseconds()/10)
   return( 
-    <Text style={style}>
-      {duration.minutes()}:{duration.seconds()}:{centiseconds}
-    </Text>
+    <View style={styles.timerContainer}>
+        <Text style={style}>{pad(duration.minutes())}:</Text>
+        <Text style={style}>{pad(duration.seconds())},</Text>
+        <Text style={style}>{pad(centiseconds)}</Text>
+    </View>
   )
 }
 
@@ -104,15 +107,28 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <Timer interval={timer} style={styles.timer}/>
-        <ButtonRow>
-          <RoundButton title='Reset' color='#50D167' background='#1B361F'/>
-          <RoundButton 
-              title='Start' 
-              color='#ffff' 
-              background='#3D3D3D'
-              onPress={this.start}
-          />
-        </ButtonRow>
+        {laps.length == 0 && (
+          <ButtonRow>
+            <RoundButton title='Reset' color='#50D167' background='#1B361F'/>
+            <RoundButton 
+                title='Start' 
+                color='#ffff' 
+                background='#3D3D3D'
+                onPress={this.start}
+            />
+          </ButtonRow>
+        )}
+        {start > 0 && (
+            <ButtonRow>
+            <RoundButton title='Lap' color='#50D167' background='#1B361F'/>
+            <RoundButton 
+                title='Stop' 
+                color='#E33935' 
+                background='#3C1715'
+                onPress={this.start}
+            />
+          </ButtonRow>
+        )}
           <LapsTable laps = {laps} timer={timer} />
       </View>
     );
@@ -132,7 +148,8 @@ const styles = StyleSheet.create({
   {
     color: 'white',
     fontSize: 70,
-    fontWeight: '200',
+    fontWeight: '100',
+    width: 110,
   },
 
   button:{
@@ -174,6 +191,7 @@ const styles = StyleSheet.create({
   lapText:{
     color: '#FFFFFF',
     fontSize: 17,
+    width:30,
   },
 
   lap:{
@@ -195,5 +213,9 @@ const styles = StyleSheet.create({
   slowest:{
     color: '#CC3531',
   },
+
+  timerContainer:{
+    flexDirection: 'row',
+  }
   
 });
