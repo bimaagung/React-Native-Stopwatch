@@ -15,13 +15,13 @@ function Timer({ interval, style }) {
 
 function RoundButton({title, color, background, onPress, disabled}){
   return (
-    <TouchableOpacity>
+    <TouchableOpacity
       onPress={() => !disabled && onPress()}
-      style={[styles.button, { backgroundColor : background}]}
+      style={[styles.button, { backgroundColor : background }]}
       activeOpacity={disabled ? 1.0 : 0.7}
     >
       <View style={styles.buttonBorder}>
-        <Text style={[styles.button, {color}]}>{title}</Text>
+        <Text style={[styles.buttonTitle, {color}]}>{title}</Text>
       </View>
     </TouchableOpacity>
   )
@@ -48,26 +48,26 @@ function Lap({ number, interval, fastest, slowest }){
   )
 }
 
-function LapsTable({laps}){
+function LapsTable({laps, timer}){
   const finishedLaps = laps.slice(1)
   let min  = Number.MAX_SAFE_INTEGER
   let max = Number.MIN_SAFE_INTEGER
   if(finishedLaps.length >= 2){
-    finishedLaps.forEach(lap=>{
+    finishedLaps.forEach( lap=>{
       if(lap < min) min = laps
       if(lap > max) max = laps
     })
   }
-  
+
   return(
     <ScrollView style={styles.scrollView}>
       {laps.map((lap, index)=> (
         <Lap 
           number={laps.length - index} 
           key={laps.length - index} 
-          interval={lap}
-          fastest={lap === min}
-          slowest={lap === max}
+          interval={index == 0 ? timer + lap : lap}
+          fastest={lap == min}
+          slowest={lap == max}
           />
       ))}
     </ScrollView>
@@ -86,23 +86,34 @@ export default class App extends React.Component {
 
   start = () =>
   {
-    
+    const now = new Date().getTime()
+    this.setState({
+      start: now,
+      now,
+      laps: [0],
+    })  
+    this.timer = setInterval(()=>{
+      this.setState({now: new Date().getTime()})
+    }, 100)
   }
+
+
   render() {
-    const{timer, laps} = this.state
+    const{now, start, laps} = this.state
+    const timer = now - start
     return (
       <View style={styles.container}>
         <Timer interval={timer} style={styles.timer}/>
         <ButtonRow>
-          <RoundButton title='Start' color='#50D167' background='#1B361F'/>
+          <RoundButton title='Reset' color='#50D167' background='#1B361F'/>
           <RoundButton 
-              title='Reset' 
+              title='Start' 
               color='#ffff' 
               background='#3D3D3D'
               onPress={this.start}
           />
         </ButtonRow>
-          <LapsTable laps = {laps} />
+          <LapsTable laps = {laps} timer={timer} />
       </View>
     );
   }
