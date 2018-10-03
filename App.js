@@ -57,8 +57,8 @@ function LapsTable({laps, timer}){
   let max = Number.MIN_SAFE_INTEGER
   if(finishedLaps.length >= 2){
     finishedLaps.forEach( lap=>{
-      if(lap < min) min = laps
-      if(lap > max) max = laps
+      if(lap < min) min = lap
+      if(lap > max) max = lap
     })
   }
 
@@ -132,6 +132,17 @@ export default class App extends React.Component {
   {
     const now = new Date().getTime()
     this.setState({
+      start: now,
+      now,
+    })  
+    this.timer = setInterval(()=>{
+      this.setState({now: new Date().getTime()})
+    }, 100)
+  }
+
+  reset = () =>
+  {
+    this.setState({
       start: 0,
       now: 0,
       laps: [],
@@ -157,9 +168,10 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <Timer 
-          interval={laps.reduce((total, crurr)=> total + curr, 0)+timer} 
+          interval={laps.reduce((total, curr) => total + curr, 0)+timer} 
           style={styles.timer}  
         />
+        
         {laps.length == 0 && (
           <ButtonRow>
             <RoundButton title='Lap' color='#50D167' background='#151515' disabled/>
@@ -171,6 +183,7 @@ export default class App extends React.Component {
             />
           </ButtonRow>
         )}
+
         {start > 0 && (
             <ButtonRow>
             <RoundButton 
@@ -188,7 +201,7 @@ export default class App extends React.Component {
           </ButtonRow>
         )}
 
-        {laps.length > 0 && start == 0 && (
+        {/* {laps.length > 0 && start == 0 && (
             <ButtonRow>
             <RoundButton 
                 title='Reset' 
@@ -203,8 +216,7 @@ export default class App extends React.Component {
                 onPress={this.resume}
             />
           </ButtonRow>
-        )}
-
+        )} */}
           <LapsTable laps = {laps} timer={timer} />
       </View>
     );
